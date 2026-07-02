@@ -1,0 +1,1599 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>쏘카일레클 UT 테스트</title>
+    <style>
+      :root {
+        --bg: #f4f6fa;
+        --surface: #ffffff;
+        --ink: #151923;
+        --muted: #667085;
+        --line: #d8dee9;
+        --soft: #eef3f8;
+        --accent: #0677ff;
+        --accent-weak: #e9f2ff;
+        --ok: #12b76a;
+        --danger: #f04438;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        zoom: 1;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      button,
+      textarea,
+      input {
+        font: inherit;
+      }
+
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      .topbar {
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 12px 24px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .mark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--accent);
+        color: white;
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.25;
+        font-weight: 760;
+      }
+
+      .subtitle {
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .progress {
+        min-width: 300px;
+      }
+
+      .progress-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 7px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .progress-track {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: var(--soft);
+      }
+
+      .progress-fill {
+        width: 16.66%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--accent);
+        transition: width 180ms ease;
+      }
+
+      main {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(380px, 1fr);
+      }
+
+      .stage {
+        min-width: 0;
+        min-height: 0;
+        padding: 18px;
+      }
+
+      .surface {
+        height: calc(100vh - 100px);
+        min-height: 560px;
+        overflow: hidden;
+        background: #111827;
+        border: 1px solid #101828;
+        border-radius: 8px;
+        box-shadow: 0 18px 50px rgba(16, 24, 40, 0.16);
+      }
+
+      .figma-shell {
+        --figma-scale: 0.8;
+        --figma-size: 125%;
+        --figma-footer-crop: 64px;
+        position: relative;
+      }
+
+      iframe {
+        position: absolute;
+        inset: 0;
+        width: var(--figma-size);
+        height: calc(var(--figma-size) + var(--figma-footer-crop));
+        border: 0;
+        display: block;
+        background: white;
+        transform: scale(var(--figma-scale));
+        transform-origin: top left;
+      }
+
+      .prototype-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.68);
+        color: white;
+        text-align: center;
+      }
+
+      .prototype-overlay p {
+        max-width: min(860px, calc(100% - 48px));
+        margin: 0;
+        font-size: 20px;
+        font-weight: 500;
+        line-height: 1.7;
+      }
+
+      .image-stage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 28px 18px;
+        background: #3f3f3f;
+      }
+
+      .reference-img {
+        display: block;
+        width: auto;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+
+      .image-pair {
+        width: min(100%, 760px);
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        align-items: center;
+        justify-items: center;
+      }
+
+      .image-option {
+        min-width: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        justify-items: center;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .image-option img {
+        display: block;
+        width: auto;
+        max-width: min(100%, 360px);
+        height: auto;
+        max-height: min(760px, calc(100vh - 230px));
+        min-height: 0;
+        object-fit: contain;
+      }
+
+      .image-option-label {
+        flex: 0 0 40px;
+        color: white;
+        font-size: 28px;
+        font-weight: 500;
+        line-height: 40px;
+      }
+
+      aside {
+        min-height: 0;
+        padding: 18px 18px 18px 0;
+      }
+
+      .panel {
+        height: calc(100vh - 100px);
+        min-height: 560px;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        padding: 24px;
+        overflow: auto;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .eyebrow {
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 760;
+      }
+
+      .panel h2 {
+        margin: 4px 0 0;
+        font-size: 22px;
+        line-height: 1.35;
+      }
+
+      .panel p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.6;
+      }
+
+      .condition {
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfcfe;
+        color: #344054;
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .options {
+        display: grid;
+        gap: 10px;
+      }
+
+      .choice {
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 0 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+        color: var(--ink);
+        cursor: pointer;
+        font-size: 17px;
+        font-weight: 720;
+      }
+
+      .choice:hover,
+      .choice:focus-visible,
+      .choice.is-selected {
+        outline: none;
+        border-color: var(--accent);
+        background: var(--accent-weak);
+      }
+
+      .choice.is-selected::after {
+        content: "선택됨";
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 760;
+      }
+
+      .field {
+        display: grid;
+        gap: 10px;
+      }
+
+      .field label {
+        color: #344054;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.5;
+      }
+
+      .profile-fields {
+        display: grid;
+        gap: 60px;
+      }
+
+      .question-fields {
+        display: grid;
+        gap: 60px;
+      }
+
+      .profile-fields .ab-picker {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      }
+
+      .profile-fields .field {
+        gap: 14px;
+      }
+
+      .question-fields .field {
+        gap: 14px;
+      }
+
+      .profile-fields .field + .field {
+        padding-top: 0;
+      }
+
+      .profile-fields .field label {
+        font-size: 17px;
+        font-weight: 680;
+      }
+
+      .profile-fields .choice {
+        min-height: 54px;
+        font-size: 16px;
+        font-weight: 640;
+      }
+
+      .profile-fields .ab-picker .choice {
+        font-size: 17px;
+        font-weight: 650;
+      }
+
+      .profile-fields .choice.is-selected::after {
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      textarea {
+        min-height: 104px;
+        width: 100%;
+        resize: vertical;
+        padding: 11px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--ink);
+        background: white;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        min-height: 52px;
+        resize: none;
+      }
+
+      input[type="text"]:focus,
+      input[type="number"]:focus,
+      textarea:focus {
+        outline: 2px solid rgba(6, 119, 255, 0.16);
+        border-color: var(--accent);
+      }
+
+      .ab-picker {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .ab-picker .choice {
+        justify-content: center;
+        min-height: 62px;
+        font-size: 22px;
+        font-weight: 800;
+      }
+
+      .number-picker .choice {
+        min-height: 52px;
+        font-size: 17px;
+        font-weight: 500;
+      }
+
+      .message {
+        min-height: 18px;
+        color: var(--danger);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .actions {
+        margin-top: auto;
+        display: flex;
+        gap: 8px;
+      }
+
+      .actions button,
+      .actions a {
+        min-height: 42px;
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: white;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 760;
+        cursor: pointer;
+      }
+
+      .actions .primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: white;
+      }
+
+      .actions button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .complete {
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: white;
+      }
+
+      .prize-stage {
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: #20242c;
+        color: white;
+      }
+
+      .ready {
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: #f8fafc;
+      }
+
+      .intro-list {
+        margin: 20px 0 0;
+        padding-left: 20px;
+        color: var(--muted);
+        text-align: left;
+        line-height: 1.7;
+      }
+
+      .complete-box {
+        max-width: 520px;
+        text-align: center;
+      }
+
+      .complete-box h2 {
+        margin: 0;
+        font-size: 24px;
+      }
+
+      .complete-box p {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .prize-box {
+        width: min(520px, 100%);
+        display: grid;
+        justify-items: center;
+        gap: 22px;
+        text-align: center;
+      }
+
+      .wheel-wrap {
+        position: relative;
+        width: min(360px, 70vw, 70vh);
+        aspect-ratio: 1;
+      }
+
+      .wheel-pointer {
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        z-index: 2;
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-top: 30px solid #ffcc00;
+        border-bottom: 0;
+        transform: translateX(-50%);
+        filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.25));
+      }
+
+      .prize-wheel {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        border: 10px solid white;
+        border-radius: 50%;
+        background: conic-gradient(#556070 0deg 198deg, #0677ff 198deg 270deg, #556070 270deg 360deg);
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+        transition: transform 4s cubic-bezier(0.12, 0.72, 0.12, 1);
+      }
+
+      .wheel-center {
+        z-index: 1;
+        width: 86px;
+        height: 86px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: white;
+        color: var(--ink);
+        font-size: 17px;
+        font-weight: 800;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+      }
+
+      .wheel-label {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 132px;
+        color: white;
+        font-size: 20px;
+        font-weight: 760;
+        line-height: 1.35;
+        text-align: center;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.32);
+        transform-origin: center;
+      }
+
+      .wheel-label.fail {
+        left: 66%;
+        top: 37%;
+        width: auto;
+        font-size: 28px;
+        transform: translate(-50%, -50%);
+      }
+
+      .wheel-label.win {
+        left: 27%;
+        top: 62%;
+        width: 128px;
+        max-width: 128px;
+        font-size: 19px;
+        font-weight: 500;
+        transform: translate(-50%, -50%);
+      }
+
+      .spin-button {
+        min-height: 48px;
+        min-width: 180px;
+        padding: 0 24px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--accent);
+        color: white;
+        font-size: 17px;
+        font-weight: 760;
+        cursor: pointer;
+      }
+
+      .spin-button:disabled {
+        opacity: 0.6;
+        cursor: wait;
+      }
+
+      .prize-result {
+        min-height: 58px;
+        max-width: 460px;
+        margin: 0;
+        font-size: 22px;
+        font-weight: 760;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 980px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+
+        .progress {
+          min-width: 220px;
+        }
+
+        aside {
+          padding: 0 18px 18px;
+        }
+
+        .surface,
+        .panel {
+          height: auto;
+          min-height: 560px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+          padding: 14px 16px;
+        }
+
+        .progress {
+          width: 100%;
+          min-width: 0;
+        }
+
+        .stage,
+        aside {
+          padding: 12px;
+        }
+
+        .surface,
+        .panel {
+          min-height: 72vh;
+        }
+
+        .figma-shell {
+          --figma-scale: 0.74;
+          --figma-size: 135.135%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark">UT</div>
+          <div>
+            <h1>쏘카일레클 사용성 테스트</h1>
+            <div class="subtitle">Prototype UT + predictability + A/B test</div>
+          </div>
+        </div>
+        <div class="progress" aria-label="진행률">
+          <div class="progress-meta">
+            <span id="stepLabel">참여자 정보</span>
+            <span id="countLabel">1 / 9</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="stage" aria-label="테스트 자료">
+          <div id="visual" class="surface figma-shell"></div>
+        </section>
+
+        <aside aria-label="응답 패널">
+          <form class="panel" id="panel"></form>
+        </aside>
+      </main>
+    </div>
+
+    <script>
+      const sheetsWebAppUrl =
+        "https://script.google.com/macros/s/AKfycbynSedXFWZ7KXHDoxxLCIYDDYpolsJr09YX3UV0PWT3iVyD8V8rDZTrCBZPlD_hEwp0/exec";
+      const sheetsSecret = "socar-elecle-ut-2026";
+
+      const figmaSources = {
+        phase1A:
+          "https://embed.figma.com/proto/97vmOhj9AyJu0qIkHEHuwu/%EC%83%9D%EA%B0%81%ED%95%98%EB%8A%94%EB%94%94%EC%9E%90%EC%9D%B4%EB%84%88-98%EA%B8%B0_%EA%B6%8C%EC%A0%95%ED%98%B8?node-id=2087-4884&viewport=-6039%2C1330%2C0.25&t=LP8J9C0aV9HxrUpW-11&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=2087%3A4884&show-proto-sidebar=0&page-id=0%3A1&embed-host=share",
+        phase1B:
+          "https://embed.figma.com/proto/97vmOhj9AyJu0qIkHEHuwu/%EC%83%9D%EA%B0%81%ED%95%98%EB%8A%94%EB%94%94%EC%9E%90%EC%9D%B4%EB%84%88-98%EA%B8%B0_%EA%B6%8C%EC%A0%95%ED%98%B8?node-id=1996-6368&viewport=-6039%2C1330%2C0.25&t=CHFcgxIaHUZjmDWK-1&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=1996%3A6368&show-proto-sidebar=0&page-id=0%3A1&embed-host=share",
+        phase2:
+          "https://embed.figma.com/proto/97vmOhj9AyJu0qIkHEHuwu/%EC%83%9D%EA%B0%81%ED%95%98%EB%8A%94%EB%94%94%EC%9E%90%EC%9D%B4%EB%84%88-98%EA%B8%B0_%EA%B6%8C%EC%A0%95%ED%98%B8?page-id=0%3A1&node-id=1820-5611&viewport=-7239%2C489%2C0.3&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=1820%3A5611&show-proto-sidebar=0&embed-host=share",
+      };
+
+      const steps = [
+        {
+          id: "profile",
+          phase: "참여자 정보",
+          count: "1 / 9",
+          visual: { type: "intro" },
+          title: "참여자 정보 입력",
+          description:
+            "리서치 시작 전, 결과 분석을 위해 기본 정보를 입력해주세요. 모든 항목을 입력하면 테스트를 시작할 수 있습니다.",
+          type: "profile",
+        },
+        {
+          id: "phase1_a",
+          phase: "Phase 1-A",
+          count: "2 / 9",
+          visual: { type: "figma", src: figmaSources.phase1A },
+          title: "근처의 배터리량이 많은 자전거 찾기",
+          description:
+            "좌측 영역의 프로토타이핑을 조작하여 사용자 근처에 있는 자전거들 중 배터리 전력이 가장 많이 남아있는 자전거를 찾아주세요. 그리고 해당 자전거 배터리 잔량(%)의 끝자리를 골라주세요.",
+          type: "timedSingle",
+          key: "phase1_a_battery_last_digit",
+          timerKey: "phase1_a",
+          options: ["9", "6", "4"],
+        },
+        {
+          id: "phase1_b",
+          phase: "Phase 1-B",
+          count: "3 / 9",
+          visual: { type: "figma", src: figmaSources.phase1B },
+          title: "근처의 배터리량이 많은 자전거 찾기",
+          description:
+            "좌측 영역의 프로토타이핑을 조작하여 사용자 근처에 있는 자전거들 중 배터리 전력이 가장 많이 남아있는 자전거를 찾아주세요. 그리고 해당 자전거 배터리 잔량(%)의 끝자리를 골라주세요.",
+          type: "timedSingle",
+          key: "phase1_b_battery_last_digit",
+          timerKey: "phase1_b",
+          options: ["8", "6", "3"],
+        },
+        {
+          id: "phase2_battery",
+          phase: "Phase 2",
+          count: "4 / 9",
+          visual: { type: "figma", src: figmaSources.phase2 },
+          title: "조건에 부합하는 일레클 찾기",
+          description:
+            "사용자는 급하게 자전거로 이동해야하는 상황입니다. 사용자에게 가까이 위치하면서도 최근에 정비가 된 자전거를 찾아주세요. 그리고 해당 조건에 부합하는 자전거의 배터리 잔량(%)을 선택해주세요.",
+          type: "timedSingle",
+          key: "phase2_battery",
+          timerKey: "phase2_battery",
+          options: ["94%", "83%", "73%", "43%", "31%"],
+        },
+        {
+          id: "phase3",
+          phase: "Phase 3",
+          count: "5 / 9",
+          visual: { type: "image", src: "assets/phase2-reference.png", alt: "정보 예측가능성 측정 참고 이미지" },
+          title: "정보 예측가능성 측정",
+          description: "주어진 화면을 보고 각 지시문에 해당하는 답을 골라주세요.",
+          type: "numberChoices",
+          questions: [
+            {
+              key: "phase3_feedback_button",
+              label: "1. 불편한 점이 있어 문의를 남기고 싶은 상황입니다. 문의 남기기 기능이 포함되어 있을 것 같은 버튼을 골라주세요.",
+            },
+            {
+              key: "phase3_urgent_return_button",
+              label: "2. 반납불가 지역에 있지만 급히 반납해야 하는 상황입니다. 긴급 반납 기능이 위치할 것으로 생각되는 버튼을 골라주세요.",
+            },
+            {
+              key: "phase3_help_button",
+              label: "3. 블루투스 연결 문제로 도움말을 찾으려는 상황입니다. 이 내용이 있을 것 같은 버튼을 골라주세요.",
+            },
+          ],
+        },
+        {
+          id: "phase4_qr",
+          phase: "Phase 4-1",
+          count: "6 / 9",
+          visual: {
+            type: "imagePair",
+            items: [
+              { label: "A", src: "assets/qr-a.png", alt: "QR 입력 화면 A" },
+              { label: "B", src: "assets/qr-b.png", alt: "QR 입력 화면 B" },
+            ],
+          },
+          title: "A/B 테스트: QR 입력 화면",
+          description: "다음 두 화면 중 스마트폰을 한손으로 조작할 시 더 편리할 것 같은 화면을 골라주세요.",
+          type: "ab",
+          key: "phase4_qr_choice",
+          reasonKey: "phase4_qr_reason",
+          reasonLabel: "그렇게 생각하신 이유는 무엇인가요?",
+        },
+        {
+          id: "phase4_bike",
+          phase: "Phase 4-2",
+          count: "7 / 9",
+          visual: {
+            type: "imagePair",
+            items: [
+              { label: "A", src: "assets/bike-select-a.png", alt: "자전거 선택 화면 A" },
+              { label: "B", src: "assets/bike-select-b.png", alt: "자전거 선택 화면 B" },
+            ],
+          },
+          title: "A/B 테스트: 자전거 선택 화면",
+          description: "다음 두 화면 중 원하는 조건의 자전거를 찾기에 더 적합한 화면을 골라주세요.",
+          type: "ab",
+          key: "phase4_bike_choice",
+          reasonKey: "phase4_bike_reason",
+          reasonLabel: "그렇게 생각하신 이유는 무엇인가요? (주관식 필수답변)",
+        },
+        {
+          id: "phase4_riding",
+          phase: "Phase 4-3",
+          count: "8 / 9",
+          visual: {
+            type: "imagePair",
+            items: [
+              { label: "A", src: "assets/riding-a.png", alt: "주행 중 화면 A" },
+              { label: "B", src: "assets/riding-b.png", alt: "주행 중 화면 B" },
+            ],
+          },
+          title: "A/B 테스트: 주행 중 화면",
+          description:
+            "자전거를 타고 이동 중인 상황입니다. 추가요금이 나오기 전에 반납해야할 타이밍을 가늠하기에 더 편리한 화면을 골라주세요.",
+          type: "ab",
+          key: "phase4_riding_choice",
+          reasonKey: "phase4_riding_reason",
+          reasonLabel: "그렇게 생각하신 이유는 무엇인가요? (주관식 필수답변)",
+        },
+        {
+          id: "complete",
+          phase: "완료",
+          count: "9 / 9",
+          visual: { type: "complete" },
+          title: "응답이 완료되었습니다",
+          description:
+            "경품 추첨을 원하는 분은 돌림판을 돌려주세요.<br /><br />당첨된 화면을 캡쳐해서 보내주시면 투썸플레이스 아메리카노R을<br />제공해드립니다 :)",
+          type: "complete",
+        },
+      ];
+
+      const state = {
+        index: 0,
+        participantId:
+          globalThis.crypto?.randomUUID?.() ||
+          `participant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        answers: {},
+        started: {},
+        startedAt: {},
+        elapsedSeconds: {},
+        phase1Order: "",
+        phase1AssignmentSource: "",
+        phase1FirstVariant: "",
+        phase1SecondVariant: "",
+        prizeResult: "",
+        prizeSpinning: false,
+        prizeRotation: 0,
+        sheetsSaveRequested: false,
+      };
+
+      const visual = document.querySelector("#visual");
+      const panel = document.querySelector("#panel");
+      const stepLabel = document.querySelector("#stepLabel");
+      const countLabel = document.querySelector("#countLabel");
+      const progressFill = document.querySelector("#progressFill");
+
+      function render() {
+        const step = steps[state.index];
+        stepLabel.textContent = step.phase;
+        countLabel.textContent = step.count;
+        progressFill.style.width = `${((state.index + 1) / steps.length) * 100}%`;
+        renderVisual(step);
+        renderPanel(step);
+      }
+
+      function updateStepCounts() {
+        steps.forEach((step, index) => {
+          step.count = `${index + 1} / ${steps.length}`;
+        });
+      }
+
+      function applyPhase1Order(order, source) {
+        const profileStep = steps.find((step) => step.id === "profile");
+        const phase1A = steps.find((step) => step.id === "phase1_a");
+        const phase1B = steps.find((step) => step.id === "phase1_b");
+        const rest = steps.filter((step) => !["profile", "phase1_a", "phase1_b"].includes(step.id));
+        const orderedPhase1 = order === "B_FIRST" ? [phase1B, phase1A] : [phase1A, phase1B];
+
+        steps.splice(0, steps.length, profileStep, ...orderedPhase1, ...rest);
+        updateStepCounts();
+
+        state.phase1Order = order;
+        state.phase1AssignmentSource = source;
+        state.phase1FirstVariant = order === "B_FIRST" ? "B" : "A";
+        state.phase1SecondVariant = order === "B_FIRST" ? "A" : "B";
+        render();
+      }
+
+      function requestPhase1Assignment() {
+        const callbackName = `phase1Assignment_${state.participantId.replace(/[^A-Za-z0-9_$]/g, "_")}`;
+        const script = document.createElement("script");
+        let settled = false;
+
+        const fallback = (reason) => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          applyPhase1Order(Math.random() < 0.5 ? "A_FIRST" : "B_FIRST", `fallback_${reason}`);
+        };
+
+        const cleanup = () => {
+          window.clearTimeout(timeoutId);
+          script.remove();
+          try {
+            delete window[callbackName];
+          } catch {
+            window[callbackName] = undefined;
+          }
+        };
+
+        const timeoutId = window.setTimeout(() => fallback("timeout"), 3500);
+        window[callbackName] = (data) => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+
+          if (data?.ok && (data.phase1_order === "A_FIRST" || data.phase1_order === "B_FIRST")) {
+            applyPhase1Order(data.phase1_order, "sheet");
+            return;
+          }
+
+          applyPhase1Order(Math.random() < 0.5 ? "A_FIRST" : "B_FIRST", "fallback_invalid_response");
+        };
+
+        script.onerror = () => fallback("network");
+        script.src = `${sheetsWebAppUrl}?action=phase1_assignment&participant_id=${encodeURIComponent(
+          state.participantId,
+        )}&callback=${encodeURIComponent(callbackName)}`;
+        document.head.appendChild(script);
+      }
+
+      function renderVisual(step) {
+        visual.className = "surface";
+        if (step.visual.type === "intro") {
+          visual.classList.add("ready");
+          visual.innerHTML = `
+            <div class="complete-box">
+              <h2>리서치 참여에 감사드립니다</h2>
+              <p>원활한 진행을 위해 화면 확대비율을 100%로 맞춘 뒤, 오른쪽 참여자 정보를 입력하시고 테스트 시작하기 버튼을 눌러주세요.</p>
+            </div>
+          `;
+          return;
+        }
+
+        if (step.visual.type === "figma") {
+          visual.classList.add("figma-shell");
+          const currentFrame = visual.querySelector("iframe");
+          if (!currentFrame || currentFrame.getAttribute("src") !== step.visual.src) {
+            visual.innerHTML = `<iframe title="쏘카일레클 Figma prototype" allowfullscreen allow="fullscreen" src="${step.visual.src}"></iframe>`;
+          }
+
+          if (step.type === "timedSingle" && !state.started[step.timerKey]) {
+            if (!visual.querySelector(".prototype-overlay")) {
+              visual.insertAdjacentHTML(
+                "beforeend",
+                `<div class="prototype-overlay">
+                  <p>오른쪽 제시문을 충분히 읽고, 해당 영역에 프로토타입이 로드되면<br />시작하기 버튼을 눌러 문제를 풀어주세요. 시작하기 버튼을 누른 순간부터 수행 시간이 측정됩니다.</p>
+                </div>`,
+              );
+            }
+            return;
+          }
+
+          visual.querySelector(".prototype-overlay")?.remove();
+          return;
+        }
+
+        if (step.visual.type === "image") {
+          visual.classList.add("image-stage");
+          visual.innerHTML = `<img class="reference-img" src="${step.visual.src}" alt="${step.visual.alt}" />`;
+          return;
+        }
+
+        if (step.visual.type === "imagePair") {
+          visual.classList.add("image-stage");
+          visual.innerHTML = `
+            <div class="image-pair">
+              ${step.visual.items
+                .map(
+                  (item) => `
+                    <figure class="image-option">
+                      <img src="${item.src}" alt="${item.alt}" />
+                      <figcaption class="image-option-label">${item.label}</figcaption>
+                    </figure>
+                  `,
+                )
+                .join("")}
+            </div>
+          `;
+          return;
+        }
+
+        if (step.visual.type === "complete") {
+          renderPrizeWheel();
+        }
+      }
+
+      function renderPrizeWheel() {
+        visual.classList.add("prize-stage");
+        const resultText = {
+          WIN: "축하드립니다. 해당 화면을 캡쳐해 개인톡으로 보내주세요!",
+          LOSE: "유저테스트에 참여해주셔서 감사합니다.",
+        };
+        visual.innerHTML = `
+          <div class="prize-box">
+            <div class="wheel-wrap">
+              <div class="wheel-pointer"></div>
+              <div class="prize-wheel" style="transform: rotate(${state.prizeRotation}deg);">
+                <span class="wheel-label fail">꽝</span>
+                <span class="wheel-label win">투썸플레이스<br />아메리카노R</span>
+                <div class="wheel-center">START</div>
+              </div>
+            </div>
+            <button class="spin-button" type="button" data-action="spin-prize" ${state.prizeSpinning || state.prizeResult ? "disabled" : ""}>
+              ${state.prizeSpinning ? "돌리는 중..." : state.prizeResult ? "추첨 완료" : "돌리기"}
+            </button>
+            <p class="prize-result">${
+              state.prizeResult
+                ? resultText[state.prizeResult]
+                : state.prizeSpinning
+                  ? "결과 확인 중입니다..."
+                  : "돌림판을 돌려 경품 추첨을 진행해주세요."
+            }</p>
+          </div>
+        `;
+      }
+
+      function renderPanel(step) {
+        const intro = `
+          <div>
+            <div class="eyebrow">${step.phase}</div>
+            <h2>${step.title}</h2>
+            <p>${step.description}</p>
+          </div>
+        `;
+
+        if (step.type === "profile") {
+          const hasExperience = state.answers.participant_experience === "있어요";
+          panel.innerHTML = `
+            ${intro}
+            <div class="profile-fields">
+              <div class="field">
+                <label for="participant_age">1. 나이 (만 나이)</label>
+                <input id="participant_age" type="number" min="1" inputmode="numeric" data-field="participant_age" placeholder="예: 만 29세라면 29" value="${state.answers.participant_age || ""}" />
+              </div>
+              <div class="field">
+                <label>2. 성별</label>
+                <div class="ab-picker">
+                  ${["남", "여", "기타"]
+                    .map(
+                      (option) => `
+                        <button class="choice ${state.answers.participant_gender === option ? "is-selected" : ""}" type="button" data-key="participant_gender" data-value="${option}">
+                          <span>${option}</span>
+                        </button>
+                      `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+              <div class="field">
+                <label>3. 쏘카일레클/지쿠/카카오바이크 등 공유전기자전거 서비스 이용 경험이 있으신가요?</label>
+                <div class="ab-picker">
+                  ${["있어요", "없어요"]
+                    .map(
+                      (option) => `
+                        <button class="choice ${state.answers.participant_experience === option ? "is-selected" : ""}" type="button" data-key="participant_experience" data-value="${option}">
+                          <span>${option}</span>
+                        </button>
+                      `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+              ${
+                hasExperience
+                  ? `
+                    <div class="field">
+                      <label>4. 공유전기자전거 서비스를 최근 1개월 동안 얼마나 자주 이용하셨나요?</label>
+                      <div class="options">
+                        ${[
+                          "주 3~4회 이상 이용",
+                          "주 1~2회 정도 이용",
+                          "월 1~2회 정도 가끔 필요할 때만 이용",
+                          "과거에는 활발히 이용했으나, 최근에는 이용하지 않음",
+                          "지금까지 한두 번 정도만 타본 경험이 있음",
+                        ]
+                          .map(
+                            (option) => `
+                              <button class="choice ${state.answers.participant_frequency === option ? "is-selected" : ""}" type="button" data-key="participant_frequency" data-value="${option}">
+                                <span>${option}</span>
+                              </button>
+                            `,
+                          )
+                          .join("")}
+                      </div>
+                    </div>
+                  `
+                  : ""
+              }
+            </div>
+            <div class="message" id="message"></div>
+            <div class="actions">
+              <button class="primary" type="button" data-action="next" ${state.phase1Order ? "" : "disabled"}>${state.phase1Order ? "테스트 시작하기" : "순서 배정 중"}</button>
+            </div>
+          `;
+          return;
+        }
+
+        if (step.type === "timedSingle") {
+          if (!state.started[step.timerKey]) {
+            panel.innerHTML = `
+              ${intro}
+              <div class="message" id="message"></div>
+              <div class="actions">
+                <button class="primary" type="button" data-action="start-task">시작하기</button>
+              </div>
+            `;
+            return;
+          }
+
+          panel.innerHTML = `
+            ${intro}
+            <div class="options">
+              ${step.options
+                .map(
+                  (option) => `
+                    <button class="choice ${state.answers[step.key] === option ? "is-selected" : ""}" type="button" data-key="${step.key}" data-value="${option}">
+                      <span>${option}</span>
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+            <div class="message" id="message"></div>
+            ${actions()}
+          `;
+        }
+
+        if (step.type === "single") {
+          panel.innerHTML = `
+            ${intro}
+            <div class="options">
+              ${step.options
+                .map(
+                  (option) => `
+                    <button class="choice ${state.answers[step.key] === option ? "is-selected" : ""}" type="button" data-key="${step.key}" data-value="${option}">
+                      <span>${option}</span>
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+            <div class="message" id="message"></div>
+            ${actions()}
+          `;
+        }
+
+        if (step.type === "numberChoices") {
+          panel.innerHTML = `
+            ${intro}
+            <div class="question-fields">
+              ${step.questions
+                .map(
+                  (question) => `
+                    <div class="field">
+                      <label>${question.label}</label>
+                      <div class="ab-picker number-picker">
+                        ${["1번", "2번"]
+                          .map(
+                            (option) => `
+                              <button class="choice ${state.answers[question.key] === option ? "is-selected" : ""}" type="button" data-key="${question.key}" data-value="${option}">
+                                <span>${option}</span>
+                              </button>
+                            `,
+                          )
+                          .join("")}
+                      </div>
+                    </div>
+                  `,
+                )
+                .join("")}
+            </div>
+            <div class="message" id="message"></div>
+            ${actions()}
+          `;
+        }
+
+        if (step.type === "fields") {
+          panel.innerHTML = `
+            ${intro}
+            ${step.fields
+              .map(
+                (field) => `
+                  <div class="field">
+                    <label for="${field.key}">${field.label}</label>
+                    <textarea id="${field.key}" data-field="${field.key}" placeholder="응답을 입력해주세요.">${state.answers[field.key] || ""}</textarea>
+                  </div>
+                `,
+              )
+              .join("")}
+            <div class="message" id="message"></div>
+            ${actions()}
+          `;
+        }
+
+        if (step.type === "ab") {
+          panel.innerHTML = `
+            <div>
+              <div class="eyebrow">${step.phase}</div>
+              <h2>${step.title}</h2>
+            </div>
+            <div class="question-fields">
+              <div class="field">
+                <label>1. ${step.description}</label>
+                <div class="ab-picker">
+                  ${["A", "B"]
+                    .map(
+                      (option) => `
+                        <button class="choice ${state.answers[step.key] === option ? "is-selected" : ""}" type="button" data-key="${step.key}" data-value="${option}">
+                          <span>${option}</span>
+                        </button>
+                      `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+              <div class="field">
+                <label for="${step.reasonKey}">2. ${step.reasonLabel}</label>
+                <textarea id="${step.reasonKey}" data-field="${step.reasonKey}" placeholder="이유를 입력해주세요.">${state.answers[step.reasonKey] || ""}</textarea>
+              </div>
+            </div>
+            <div class="message" id="message"></div>
+            ${actions()}
+          `;
+        }
+
+        if (step.type === "complete") {
+          panel.innerHTML = `
+            ${intro}
+            <div class="condition">Phase 1-A 소요시간: ${state.elapsedSeconds.phase1_a ?? "-"}초<br />Phase 1-B 소요시간: ${state.elapsedSeconds.phase1_b ?? "-"}초<br />Phase 2 소요시간: ${state.elapsedSeconds.phase2_battery ?? "-"}초</div>
+            <div class="message" id="message">${
+              state.prizeResult
+                ? state.sheetsSaveRequested
+                  ? ""
+                  : "응답을 자동 저장하는 중입니다."
+                : ""
+            }</div>
+            <div class="actions">
+              <button class="primary" type="button" data-action="close">종료</button>
+            </div>
+          `;
+        }
+      }
+
+      function actions() {
+        return `
+          <div class="actions">
+            <button class="primary" type="button" data-action="next">다음</button>
+          </div>
+        `;
+      }
+
+      function setMessage(text) {
+        const message = document.querySelector("#message");
+        if (message) message.textContent = text;
+      }
+
+      function syncFields() {
+        document.querySelectorAll("[data-field]").forEach((field) => {
+          state.answers[field.dataset.field] = field.value.trim();
+        });
+      }
+
+      function validate(step) {
+        syncFields();
+
+        if (step.type === "profile") {
+          if (!state.phase1Order) {
+            setMessage("테스트 순서를 배정하는 중입니다. 잠시 후 다시 시도해주세요.");
+            return false;
+          }
+          if (!state.answers.participant_age) {
+            setMessage("나이를 입력해주세요.");
+            return false;
+          }
+          if (!state.answers.participant_gender) {
+            setMessage("성별을 선택해주세요.");
+            return false;
+          }
+          if (!state.answers.participant_experience) {
+            setMessage("공유전기자전거 서비스 이용 경험을 선택해주세요.");
+            return false;
+          }
+          if (
+            state.answers.participant_experience === "있어요" &&
+            !state.answers.participant_frequency
+          ) {
+            setMessage("최근 1개월 이용 빈도를 선택해주세요.");
+            return false;
+          }
+        }
+
+        if ((step.type === "single" || step.type === "timedSingle") && !state.answers[step.key]) {
+          setMessage("답변을 선택해주세요.");
+          return false;
+        }
+
+        if (step.type === "fields") {
+          const empty = step.fields.find((field) => !state.answers[field.key]);
+          if (empty) {
+            setMessage("3개 응답란을 모두 입력해주세요.");
+            return false;
+          }
+        }
+
+        if (step.type === "numberChoices") {
+          const empty = step.questions.find((question) => !state.answers[question.key]);
+          if (empty) {
+            setMessage("3개 문항을 모두 선택해주세요.");
+            return false;
+          }
+        }
+
+        if (step.type === "ab") {
+          if (!state.answers[step.key]) {
+            setMessage("A 또는 B를 선택해주세요.");
+            return false;
+          }
+          if (!state.answers[step.reasonKey]) {
+            setMessage("선택 이유를 입력해주세요.");
+            return false;
+          }
+        }
+
+        setMessage("");
+        return true;
+      }
+
+      function next() {
+        const step = steps[state.index];
+        if (!validate(step)) return;
+
+        if (
+          step.type === "timedSingle" &&
+          state.startedAt[step.timerKey] &&
+          state.elapsedSeconds[step.timerKey] == null
+        ) {
+          state.elapsedSeconds[step.timerKey] = Number(
+            ((performance.now() - state.startedAt[step.timerKey]) / 1000).toFixed(2),
+          );
+        }
+
+        state.index = Math.min(state.index + 1, steps.length - 1);
+        render();
+      }
+
+      function startTask() {
+        const step = steps[state.index];
+        if (step.type !== "timedSingle") return;
+        state.started[step.timerKey] = true;
+        state.startedAt[step.timerKey] = performance.now();
+        state.elapsedSeconds[step.timerKey] = null;
+        render();
+      }
+
+      function prev() {
+        syncFields();
+        state.index = Math.max(state.index - 1, 0);
+        render();
+      }
+
+      function downloadCsv() {
+        syncFields();
+        const headers = responseHeaders();
+        const row = buildResponsePayload();
+        const csv = [headers, headers.map((key) => row[key] ?? "")]
+          .map((line) => line.map(csvCell).join(","))
+          .join("\n");
+        const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `socar-elecle-ut-${Date.now()}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function responseHeaders() {
+        return [
+          "submitted_at",
+          "participant_id",
+          "participant_age",
+          "participant_gender",
+          "participant_experience",
+          "participant_frequency",
+          "phase1_order",
+          "phase1_first_variant",
+          "phase1_second_variant",
+          "phase1_assignment_source",
+          "phase1_a_battery_last_digit",
+          "phase1_a_elapsed_seconds",
+          "phase1_b_battery_last_digit",
+          "phase1_b_elapsed_seconds",
+          "phase2_battery",
+          "phase2_elapsed_seconds",
+          "phase3_feedback_button",
+          "phase3_urgent_return_button",
+          "phase3_help_button",
+          "phase4_qr_choice",
+          "phase4_qr_reason",
+          "phase4_bike_choice",
+          "phase4_bike_reason",
+          "phase4_riding_choice",
+          "phase4_riding_reason",
+          "prize_result",
+          "user_agent",
+        ];
+      }
+
+      function buildResponsePayload() {
+        return {
+          secret: sheetsSecret,
+          submitted_at: localTimestamp(),
+          participant_id: state.participantId,
+          participant_age: state.answers.participant_age ?? "",
+          participant_gender: state.answers.participant_gender ?? "",
+          participant_experience: state.answers.participant_experience ?? "",
+          participant_frequency: state.answers.participant_frequency ?? "",
+          phase1_order: state.phase1Order,
+          phase1_first_variant: state.phase1FirstVariant,
+          phase1_second_variant: state.phase1SecondVariant,
+          phase1_assignment_source: state.phase1AssignmentSource,
+          phase1_a_elapsed_seconds: state.elapsedSeconds.phase1_a ?? "",
+          phase1_b_elapsed_seconds: state.elapsedSeconds.phase1_b ?? "",
+          phase2_elapsed_seconds: state.elapsedSeconds.phase2_battery ?? "",
+          prize_result: state.prizeResult,
+          user_agent: navigator.userAgent,
+          ...state.answers,
+        };
+      }
+
+      function localTimestamp() {
+        const date = new Date();
+        const parts = new Intl.DateTimeFormat("sv-SE", {
+          timeZone: "Asia/Seoul",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }).formatToParts(date);
+        const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+        return `${values.year}-${values.month}-${values.day} ${values.hour}:${values.minute}:${values.second}`;
+      }
+
+      function saveToGoogleSheets() {
+        syncFields();
+        setMessage("Google Sheets에 저장 요청을 보내는 중입니다.");
+        const payload = buildResponsePayload();
+        const body = JSON.stringify(payload);
+        const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
+
+        if (navigator.sendBeacon && navigator.sendBeacon(sheetsWebAppUrl, blob)) {
+          setMessage("");
+          return;
+        }
+
+        fetch(sheetsWebAppUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body,
+        })
+          .then(() => {
+            setMessage("");
+          })
+          .catch(() => {
+            setMessage("자동 저장 요청에 실패했습니다. 진행자에게 알려주세요.");
+          });
+      }
+
+      function autoSaveOnComplete() {
+        if (state.sheetsSaveRequested) return;
+        state.sheetsSaveRequested = true;
+        window.setTimeout(saveToGoogleSheets, 0);
+      }
+
+      function startPrizeSpin() {
+        if (state.prizeSpinning || state.prizeResult) return;
+
+        const wheel = visual.querySelector(".prize-wheel");
+        const button = visual.querySelector(".spin-button");
+        const resultMessage = visual.querySelector(".prize-result");
+        const result = Math.random() < 0.2 ? "WIN" : "LOSE";
+        const targetMod = result === "WIN" ? 126 : 324;
+        const currentMod = ((state.prizeRotation % 360) + 360) % 360;
+        const delta = (targetMod - currentMod + 360) % 360;
+
+        state.prizeSpinning = true;
+        state.prizeRotation += 1440 + delta;
+
+        if (button) {
+          button.disabled = true;
+          button.textContent = "돌리는 중...";
+        }
+        if (resultMessage) {
+          resultMessage.textContent = "결과 확인 중입니다...";
+        }
+        if (wheel) {
+          wheel.style.transform = `rotate(${state.prizeRotation}deg)`;
+        }
+
+        window.setTimeout(() => {
+          state.prizeSpinning = false;
+          state.prizeResult = result;
+          renderVisual(steps[state.index]);
+          renderPanel(steps[state.index]);
+          autoSaveOnComplete();
+        }, 4000);
+      }
+
+      function csvCell(value) {
+        const text = String(value);
+        return `"${text.replaceAll('"', '""')}"`;
+      }
+
+      function closeSurvey() {
+        if (steps[state.index]?.type === "complete" && !state.prizeResult) {
+          setMessage("돌림판을 먼저 돌려주세요.");
+          return;
+        }
+        window.open("", "_self");
+        window.close();
+        window.setTimeout(() => {
+          setMessage("브라우저 정책상 자동으로 닫히지 않을 수 있습니다. 이 창을 직접 닫아주세요.");
+        }, 300);
+      }
+
+      panel.addEventListener("click", (event) => {
+        const choice = event.target.closest("[data-key]");
+        if (choice) {
+          state.answers[choice.dataset.key] = choice.dataset.value;
+          if (choice.dataset.key === "participant_experience" && choice.dataset.value === "없어요") {
+            state.answers.participant_frequency = "";
+          }
+          renderPanel(steps[state.index]);
+          return;
+        }
+
+        const action = event.target.closest("[data-action]")?.dataset.action;
+        if (action === "next") next();
+        if (action === "prev") prev();
+        if (action === "start-task") startTask();
+        if (action === "download") downloadCsv();
+        if (action === "close") closeSurvey();
+      });
+
+      visual.addEventListener("click", (event) => {
+        const action = event.target.closest("[data-action]")?.dataset.action;
+        if (action === "spin-prize") startPrizeSpin();
+      });
+
+      panel.addEventListener("input", syncFields);
+      updateStepCounts();
+      render();
+      requestPhase1Assignment();
+    </script>
+  </body>
+</html>
