@@ -335,11 +335,20 @@
         gap: 60px;
       }
 
+      .question-fields {
+        display: grid;
+        gap: 60px;
+      }
+
       .profile-fields .ab-picker {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       }
 
       .profile-fields .field {
+        gap: 14px;
+      }
+
+      .question-fields .field {
         gap: 14px;
       }
 
@@ -641,15 +650,15 @@
           questions: [
             {
               key: "phase3_feedback_button",
-              label: "3-1. 불편한 점이 있어 문의 남기기를 하려는 상황입니다. 이 기능이 포함되어 있을 것 같은 버튼을 골라주세요.",
+              label: "1. 불편한 점이 있어 문의를 남기고 싶은 상황입니다. 문의 남기기 기능이 포함되어 있을 것 같은 버튼을 골라주세요.",
             },
             {
               key: "phase3_urgent_return_button",
-              label: "3-2. 반납불가 지역에 있지만 급히 반납해야 하는 상황입니다. 긴급 반납 기능이 위치할 것으로 생각되는 버튼을 골라주세요.",
+              label: "2. 반납불가 지역에 있지만 급히 반납해야 하는 상황입니다. 긴급 반납 기능이 위치할 것으로 생각되는 버튼을 골라주세요.",
             },
             {
               key: "phase3_help_button",
-              label: "3-3. 블루투스 연결 문제로 도움말을 찾으려는 상황입니다. 이 내용이 있을 것 같은 버튼을 골라주세요.",
+              label: "3. 블루투스 연결 문제로 도움말을 찾으려는 상황입니다. 이 내용이 있을 것 같은 버튼을 골라주세요.",
             },
           ],
         },
@@ -955,26 +964,28 @@
         if (step.type === "numberChoices") {
           panel.innerHTML = `
             ${intro}
-            ${step.questions
-              .map(
-                (question) => `
-                  <div class="field">
-                    <label>${question.label}</label>
-                    <div class="ab-picker">
-                      ${["1번", "2번"]
-                        .map(
-                          (option) => `
-                            <button class="choice ${state.answers[question.key] === option ? "is-selected" : ""}" type="button" data-key="${question.key}" data-value="${option}">
-                              <span>${option}</span>
-                            </button>
-                          `,
-                        )
-                        .join("")}
+            <div class="question-fields">
+              ${step.questions
+                .map(
+                  (question) => `
+                    <div class="field">
+                      <label>${question.label}</label>
+                      <div class="ab-picker">
+                        ${["1번", "2번"]
+                          .map(
+                            (option) => `
+                              <button class="choice ${state.answers[question.key] === option ? "is-selected" : ""}" type="button" data-key="${question.key}" data-value="${option}">
+                                <span>${option}</span>
+                              </button>
+                            `,
+                          )
+                          .join("")}
+                      </div>
                     </div>
-                  </div>
-                `,
-              )
-              .join("")}
+                  `,
+                )
+                .join("")}
+            </div>
             <div class="message" id="message"></div>
             ${actions(true)}
           `;
@@ -1000,21 +1011,29 @@
 
         if (step.type === "ab") {
           panel.innerHTML = `
-            ${intro}
-            <div class="ab-picker">
-              ${["A", "B"]
-                .map(
-                  (option) => `
-                    <button class="choice ${state.answers[step.key] === option ? "is-selected" : ""}" type="button" data-key="${step.key}" data-value="${option}">
-                      <span>${option}</span>
-                    </button>
-                  `,
-                )
-                .join("")}
+            <div>
+              <div class="eyebrow">${step.phase}</div>
+              <h2>${step.title}</h2>
             </div>
-            <div class="field">
-              <label for="${step.reasonKey}">${step.reasonLabel}</label>
-              <textarea id="${step.reasonKey}" data-field="${step.reasonKey}" placeholder="이유를 입력해주세요.">${state.answers[step.reasonKey] || ""}</textarea>
+            <div class="question-fields">
+              <div class="field">
+                <label>1. ${step.description}</label>
+                <div class="ab-picker">
+                  ${["A", "B"]
+                    .map(
+                      (option) => `
+                        <button class="choice ${state.answers[step.key] === option ? "is-selected" : ""}" type="button" data-key="${step.key}" data-value="${option}">
+                          <span>${option}</span>
+                        </button>
+                      `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+              <div class="field">
+                <label for="${step.reasonKey}">2. ${step.reasonLabel}</label>
+                <textarea id="${step.reasonKey}" data-field="${step.reasonKey}" placeholder="이유를 입력해주세요.">${state.answers[step.reasonKey] || ""}</textarea>
+              </div>
             </div>
             <div class="message" id="message"></div>
             ${actions(true)}
