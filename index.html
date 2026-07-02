@@ -1277,6 +1277,7 @@
               <button class="primary" type="button" data-action="close">종료</button>
             </div>
           `;
+          autoSaveOnComplete();
         }
       }
 
@@ -1487,26 +1488,48 @@
         syncFields();
         setMessage("Google Sheets에 저장 요청을 보내는 중입니다.");
         const payload = buildResponsePayload();
-        const body = JSON.stringify(payload);
-        const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
+        const callbackName = `saveResponse_${state.participantId.replace(/[^A-Za-z0-9_$]/g, "_")}_${Date.now()}`;
+        const script = document.createElement("script");
+        let settled = false;
 
-        if (navigator.sendBeacon && navigator.sendBeacon(sheetsWebAppUrl, blob)) {
-          setMessage("");
-          return;
-        }
+        const cleanup = () => {
+          window.clearTimeout(timeoutId);
+          script.remove();
+          try {
+            delete window[callbackName];
+          } catch {
+            window[callbackName] = undefined;
+          }
+        };
 
-        fetch(sheetsWebAppUrl, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body,
-        })
-          .then(() => {
+        const fail = () => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          state.sheetsSaveRequested = false;
+          setMessage("자동 저장 요청에 실패했습니다. 진행자에게 알려주세요.");
+        };
+
+        const timeoutId = window.setTimeout(fail, 6000);
+        window[callbackName] = (data) => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+
+          if (data?.ok) {
             setMessage("");
-          })
-          .catch(() => {
-            setMessage("자동 저장 요청에 실패했습니다. 진행자에게 알려주세요.");
-          });
+            return;
+          }
+
+          state.sheetsSaveRequested = false;
+          setMessage("자동 저장 요청에 실패했습니다. 진행자에게 알려주세요.");
+        };
+
+        script.onerror = fail;
+        script.src = `${sheetsWebAppUrl}?action=submit&callback=${encodeURIComponent(
+          callbackName,
+        )}&payload=${encodeURIComponent(JSON.stringify(payload))}`;
+        document.head.appendChild(script);
       }
 
       function autoSaveOnComplete() {
@@ -1545,6 +1568,7 @@
           state.prizeResult = result;
           renderVisual(steps[state.index]);
           renderPanel(steps[state.index]);
+          state.sheetsSaveRequested = false;
           autoSaveOnComplete();
         }, 4000);
       }
@@ -1555,10 +1579,6 @@
       }
 
       function closeSurvey() {
-        if (steps[state.index]?.type === "complete" && !state.prizeResult) {
-          setMessage("돌림판을 먼저 돌려주세요.");
-          return;
-        }
         window.open("", "_self");
         window.close();
         window.setTimeout(() => {
