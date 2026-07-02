@@ -35,23 +35,7 @@ const HEADERS = [
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents || "{}");
-
-    if (payload.secret !== SECRET) {
-      return jsonResponse({ ok: false, error: "unauthorized" });
-    }
-
-    const sheet = getOrCreateSheet();
-    ensureHeaders(sheet);
-
-    const row = HEADERS.map((key) => payload[key] ?? "");
-    const participantRow = findParticipantRow(sheet, payload.participant_id);
-    if (participantRow) {
-      sheet.getRange(participantRow, 1, 1, HEADERS.length).setValues([row]);
-    } else {
-      sheet.appendRow(row);
-    }
-
-    return jsonResponse({ ok: true });
+    return jsonResponse(savePayload(payload));
   } catch (error) {
     return jsonResponse({ ok: false, error: String(error) });
   }
@@ -90,12 +74,40 @@ function doGet(e) {
     });
   }
 
+  if (params.action === "submit") {
+    try {
+      const payload = JSON.parse(params.payload || "{}");
+      return scriptResponse(params.callback, savePayload(payload));
+    } catch (error) {
+      return scriptResponse(params.callback, { ok: false, error: String(error) });
+    }
+  }
+
   return jsonResponse({ ok: true, message: "UT response collector is running." });
 }
 
 function getOrCreateSheet() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   return spreadsheet.getSheetByName(SHEET_NAME) || spreadsheet.insertSheet(SHEET_NAME);
+}
+
+function savePayload(payload) {
+  if (payload.secret !== SECRET) {
+    return { ok: false, error: "unauthorized" };
+  }
+
+  const sheet = getOrCreateSheet();
+  ensureHeaders(sheet);
+
+  const row = HEADERS.map((key) => payload[key] ?? "");
+  const participantRow = findParticipantRow(sheet, payload.participant_id);
+  if (participantRow) {
+    sheet.getRange(participantRow, 1, 1, HEADERS.length).setValues([row]);
+  } else {
+    sheet.appendRow(row);
+  }
+
+  return { ok: true };
 }
 
 function headerIndex(headerName) {
