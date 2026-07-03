@@ -1544,8 +1544,8 @@
         const wheel = visual.querySelector(".prize-wheel");
         const button = visual.querySelector(".spin-button");
         const resultMessage = visual.querySelector(".prize-result");
-        const result = Math.random() < 0.2 ? "WIN" : "LOSE";
-        const targetMod = result === "WIN" ? 126 : 324;
+        const result = "LOSE";
+        const targetMod = 324;
         const currentMod = ((state.prizeRotation % 360) + 360) % 360;
         const delta = (targetMod - currentMod + 360) % 360;
 
